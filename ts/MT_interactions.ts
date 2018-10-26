@@ -24,9 +24,9 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchstart"],
                 useCapture: false,
                 action: (evt : TouchEvent) : boolean => {
-                    // To be completed
-                    //let touch = getRelevantDataFromEvent(evt);
-                    //let pointer = touch.identifier;
+                    let touch = getRelevantDataFromEvent(evt);
+                    pointerId_1 = touch.identifier;
+
                     Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
 
                     originalMatrix = transfo.getMatrixFromElement(element);
@@ -44,9 +44,9 @@ function multiTouch(element: HTMLElement) : void {
                 action: (evt : TouchEvent) : boolean => {
                     evt.preventDefault();
                     evt.stopPropagation();
-                    //originalMatrix = transfo.getMatrixFromElement(element);
+
                     Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-                    // Pt1_coord_parent = originalMatrix*Pt1_coord_parent;
+
                     transfo.drag(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent);
 
                     console.log("On translate " + Pt1_coord_parent.x);
@@ -61,6 +61,7 @@ function multiTouch(element: HTMLElement) : void {
                 action: (evt : TouchEvent) : boolean => {
                     Pt1_coord_element = null;
                     Pt1_coord_parent = null;
+                    pointerId_1 = -1;
                     return true;
                 }
             },
@@ -69,6 +70,9 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchstart"],
                 useCapture: false,
                 action: (evt : TouchEvent) : boolean => {
+                    let touch = getRelevantDataFromEvent(evt);
+                    pointerId_2 = touch.identifier;
+
                     Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
                     Pt2_coord_parent = transfo.getPoint(evt.changedTouches[1].clientX, evt.changedTouches[1].clientY);
 
@@ -101,9 +105,22 @@ function multiTouch(element: HTMLElement) : void {
                 useCapture: true,
                 action: (evt : TouchEvent) : boolean => {
                     const touch = getRelevantDataFromEvent(evt);
-                    // touch ????
-                    Pt2_coord_element = null;
-                    Pt2_coord_parent = null;
+                    // On verifie quel pointeur est toujours sur l'ecran
+                    if(touch.identifier === pointerId_2) {
+                        // si c'est le pointeur 2 on le "renomme" en pointeur 1
+                        Pt1_coord_element = Pt2_coord_element;
+                        Pt1_coord_parent = Pt2_coord_parent;
+                        pointerId_1 = pointerId_2;
+                        Pt2_coord_element = null;
+                        Pt2_coord_parent = null;
+                        pointerId_2 = -1;
+                    } else if(touch.identifier === pointerId_1) {
+                        Pt2_coord_element = null;
+                        Pt2_coord_parent = null;
+                        pointerId_2 = -1;
+                    } else {
+                        console.error("Erreur pointeur inatendu");
+                    }
                     return true;
                 }
             }
