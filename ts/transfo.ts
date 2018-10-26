@@ -56,6 +56,9 @@ export let drag =       ( element               : HTMLElement
                         , Pt_coord_parent       : SVGPoint
                         ) => {
 	// TO BE DONE
+    originalMatrix.e = Pt_coord_parent.x - (originalMatrix.a*Pt_coord_element.x) - (originalMatrix.c*Pt_coord_element.y);
+    originalMatrix.f = Pt_coord_parent.y - (originalMatrix.b*Pt_coord_element.x) - (originalMatrix.d*Pt_coord_element.y);
+    setMatrixToElement(element, originalMatrix);
 };
 
 //______________________________________________________________________________________________________________________

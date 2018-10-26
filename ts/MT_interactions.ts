@@ -25,6 +25,15 @@ function multiTouch(element: HTMLElement) : void {
                 useCapture: false,
                 action: (evt : TouchEvent) : boolean => {
                     // To be completed
+                    //let touch = getRelevantDataFromEvent(evt);
+                    //let pointer = touch.identifier;
+                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
+
+                    originalMatrix = transfo.getMatrixFromElement(element);
+
+                    Pt1_coord_element = Pt1_coord_parent.matrixTransform(originalMatrix.inverse());
+
+                    console.log("Hello World !" + Pt1_coord_element);
                     return true;
                 }
             },
@@ -35,6 +44,12 @@ function multiTouch(element: HTMLElement) : void {
                 action: (evt : TouchEvent) : boolean => {
                     evt.preventDefault();
                     evt.stopPropagation();
+                    //originalMatrix = transfo.getMatrixFromElement(element);
+                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
+                    // Pt1_coord_parent = originalMatrix*Pt1_coord_parent;
+                    transfo.drag(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent);
+
+                    console.log("On translate " + Pt1_coord_parent.x);
                     // To be completed
                     return true;
                 }
