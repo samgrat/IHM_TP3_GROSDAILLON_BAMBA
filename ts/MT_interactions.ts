@@ -24,16 +24,11 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchstart"],
                 useCapture: false,
                 action: (evt : TouchEvent) : boolean => {
-                    let touch = getRelevantDataFromEvent(evt);
-                    pointerId_1 = touch.identifier;
 
-                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-
-                    originalMatrix = transfo.getMatrixFromElement(element);
-
-                    Pt1_coord_element = Pt1_coord_parent.matrixTransform(originalMatrix.inverse());
-
-                    console.log("Hello World !" + Pt1_coord_element);
+                    pointerId_1 = 0;
+                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point par rapport a l'évènement
+                    originalMatrix = transfo.getMatrixFromElement(element); //on récupère la matrice avec l'élément
+                    Pt1_coord_element = Pt1_coord_parent.matrixTransform(originalMatrix.inverse()); // On transforme Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
                     return true;
                 }
             },
@@ -45,11 +40,8 @@ function multiTouch(element: HTMLElement) : void {
                     evt.preventDefault();
                     evt.stopPropagation();
 
-                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-
-                    transfo.drag(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent);
-
-                    console.log("On translate " + Pt1_coord_parent.x);
+                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point correspondant à la position du doigt sur l'écran
+                    transfo.drag(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent); //on applique la fonction de drag.
                     return true;
                 }
             },
@@ -59,7 +51,7 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchend"],
                 useCapture: true,
                 action: (evt : TouchEvent) : boolean => {
-                    Pt1_coord_element = null;
+                    Pt1_coord_element = null; //Pt1 passe a null car nous n'avons plus de doigt sur la surface de l'écran
                     Pt1_coord_parent = null;
                     pointerId_1 = -1;
                     return true;
@@ -70,16 +62,12 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchstart"],
                 useCapture: false,
                 action: (evt : TouchEvent) : boolean => {
-                    let touch = getRelevantDataFromEvent(evt);
-                    pointerId_2 = touch.identifier;
+                    pointerId_2 = 1;
 
-                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-                    Pt2_coord_parent = transfo.getPoint(evt.changedTouches[1].clientX, evt.changedTouches[1].clientY);
-
-                    originalMatrix = transfo.getMatrixFromElement(element);
-
-                    Pt2_coord_element = Pt1_coord_parent.matrixTransform(originalMatrix.inverse());
-                    Pt1_coord_element = Pt2_coord_parent.matrixTransform(originalMatrix.inverse());
+                    Pt2_coord_parent = transfo.getPoint(evt.changedTouches.item(0).clientX, evt.changedTouches.item(0).clientY); //le nouvel évènement qui arrive lorsqu'on ajoute un second doigt est le 0 car le premier doigt n'est plus référencé dans la liste evt.changedTouches ici. L'arrivée d'un nouveau doigt correspond a un évènement avec un doigt
+                    originalMatrix = transfo.getMatrixFromElement(element); //on récupère la matrice avec l'élément
+                    Pt1_coord_element = Pt1_coord_parent.matrixTransform(originalMatrix.inverse()); // On transforme Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
+                    Pt2_coord_element = Pt2_coord_parent.matrixTransform(originalMatrix.inverse()); // On transforme Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
                     return true;
                 }
             },
@@ -88,13 +76,16 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchmove"],
                 useCapture: true,
                 action: (evt : TouchEvent) : boolean => {
+
                     evt.preventDefault();
                     evt.stopPropagation();
 
-                    Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-                    Pt2_coord_parent = transfo.getPoint(evt.changedTouches[1].clientX, evt.changedTouches[1].clientY);
+                    if (evt.changedTouches.item(1)!== null) { // nous appliquons le rotorzoom uniquement si l'on a bien les 2 doigts qui sont repérés dans l'évènement
+                        Pt1_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //doigt 1
+                        Pt2_coord_parent = transfo.getPoint(evt.changedTouches.item(1).clientX, evt.changedTouches.item(1).clientY); //doigt 2
+                        transfo.rotozoom(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent, Pt2_coord_element,Pt2_coord_parent); // on applique la fonction de rotozoom
+                    }
 
-                    transfo.rotozoom(element,originalMatrix,Pt1_coord_element,Pt1_coord_parent, Pt2_coord_element,Pt2_coord_parent);
                     return true;
                 }
             },
@@ -104,23 +95,24 @@ function multiTouch(element: HTMLElement) : void {
                 eventName: ["touchend"],
                 useCapture: true,
                 action: (evt : TouchEvent) : boolean => {
-                    const touch = getRelevantDataFromEvent(evt);
-                    // On verifie quel pointeur est toujours sur l'ecran
-                    if(touch.identifier === pointerId_2) {
-                        // si c'est le pointeur 2 on le "renomme" en pointeur 1
-                        Pt1_coord_element = Pt2_coord_element;
+                    const touch = getRelevantDataFromEvent(evt); //correspond au doigt que l'on enlève de la surface du smartphone
+                    originalMatrix = transfo.getMatrixFromElement(element);
+                    let distance_touch_Pt1 = Math.sqrt((touch.clientX - Pt1_coord_parent.x)*(touch.clientX - Pt1_coord_parent.x) + (touch.clientY - Pt1_coord_parent.y)*(touch.clientY - Pt1_coord_parent.y)); //distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt1_coord_parent
+                    let distance_touch_Pt2 = Math.sqrt((touch.clientX - Pt2_coord_parent.x)*(touch.clientX - Pt2_coord_parent.x) + (touch.clientY - Pt2_coord_parent.y)*(touch.clientY - Pt2_coord_parent.y)); //distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt2_coord_parent
+
+                    if(distance_touch_Pt1 < distance_touch_Pt2) { //si la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt1_coord_parent est plus petite que la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt2_coord_parent
+                        Pt1_coord_element = Pt2_coord_element; //Pt1 devient Pt2
                         Pt1_coord_parent = Pt2_coord_parent;
                         pointerId_1 = pointerId_2;
+                        Pt2_coord_element = null; //Pt2 devient null.
+                        Pt2_coord_parent = null;
+                        pointerId_2 = -1;
+                    } else { //Sinon, Pt1 reste Pt1, Pt2 passe a null.
                         Pt2_coord_element = null;
                         Pt2_coord_parent = null;
                         pointerId_2 = -1;
-                    } else if(touch.identifier === pointerId_1) {
-                        Pt2_coord_element = null;
-                        Pt2_coord_parent = null;
-                        pointerId_2 = -1;
-                    } else {
-                        console.error("Erreur pointeur inatendu");
                     }
+
                     return true;
                 }
             }
