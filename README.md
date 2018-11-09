@@ -23,9 +23,9 @@ En définissant une taille de base
 
 index.html
 
-+ <meta charset="utf-8"
+`+ <meta charset="utf-8"
 +			  name='viewport'
-+			  content='width=device-width, initial-scale=0.3, maximum-scale=0.3, user-scalable=0'/>
++			  content='width=device-width, initial-scale=0.3, maximum-scale=0.3, user-scalable=0'/>`
 
 ## Actions
 
