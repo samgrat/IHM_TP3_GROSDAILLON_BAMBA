@@ -5,21 +5,28 @@ Réalisé par Hugo GROS-DAILLON et Samuel BAMBA.
 ## Execution du programme
 
 Lancer Webstorm
+
 Lancer 'server'
+
 Lancer 'compile'
 
 ## Synchronisation mobile
 
 Connecter le mobile à l'ordinateur
+
 Activer le Hotspot du mobile
+
 Inspecter la page web
+
 Parameters > More Tools > Remote Devices
+
 Se connecter sur l'adresse IP du PC avec le mobile
 
 ## Choix d'implémentation
 
 Nous avons désactivé le zoom navigateur natif car il interférait avec notre rotozoom à deux doigts
-En définissant une taille de base
+
+En définissant une taille de base et une taille maximale
 
 index.html
 
