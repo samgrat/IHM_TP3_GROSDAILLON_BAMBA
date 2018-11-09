@@ -6,9 +6,15 @@ Réalisé par Hugo GROS-DAILLON et Samuel BAMBA.
 
 Lancer Webstorm
 
+Lancer la commande "npm install" dans un terminal positionné à la racine du projet
+
+Dans Webstorm, Clique droit sur package.json, puis sélectionner la commande “Show npm scripts”
+
 Lancer 'server'
 
 Lancer 'compile'
+
+Ouvrir un navigateur en accéder à "http://localhost:8080" ou "http://@IP:8080" si vous avez partagé la connexion de votre smartphone
 
 ## Synchronisation mobile
 
