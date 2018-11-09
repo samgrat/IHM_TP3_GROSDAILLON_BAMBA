@@ -4,6 +4,7 @@ import * as transfo from "./transfo";
 function multiTouch(element: HTMLElement) : void {
     let pointerId_1 : number, Pt1_coord_element : SVGPoint, Pt1_coord_parent : SVGPoint,
         pointerId_2 : number, Pt2_coord_element : SVGPoint, Pt2_coord_parent : SVGPoint,
+        pointerId_3 : number, Pt3_coord_element : SVGPoint, Pt3_coord_parent : SVGPoint,
         originalMatrix : SVGMatrix,
         getRelevantDataFromEvent = (evt : TouchEvent) : Touch => {
             for(let i=0; i<evt.changedTouches.length; i++) {
@@ -14,10 +15,10 @@ function multiTouch(element: HTMLElement) : void {
             }
             return null;
         };
-    enum MT_STATES {Inactive, Translating, Rotozooming}
+    enum MT_STATES {Inactive, Translating, Rotozooming, Slide}
     let fsm = FSM.parse<MT_STATES>( {
         initialState: MT_STATES.Inactive,
-        states: [MT_STATES.Inactive, MT_STATES.Translating, MT_STATES.Rotozooming],
+        states: [MT_STATES.Inactive, MT_STATES.Translating, MT_STATES.Rotozooming,  MT_STATES.Slide],
         transitions : [
             { from: MT_STATES.Inactive, to: MT_STATES.Translating,
                 eventTargets: [element],
@@ -111,6 +112,99 @@ function multiTouch(element: HTMLElement) : void {
                         Pt2_coord_element = null;
                         Pt2_coord_parent = null;
                         pointerId_2 = -1;
+                    }
+
+                    return true;
+                }
+            },
+            { from: MT_STATES.Rotozooming, to: MT_STATES.Slide,
+                eventTargets: [element],
+                eventName: ["touchstart"],
+                useCapture: false,
+                action: (evt : TouchEvent) : boolean => {
+
+                    pointerId_3 = 2;
+
+                    Pt3_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point par rapport a l'évènement
+                    originalMatrix = transfo.getMatrixFromElement(element); //on récupère la matrice avec l'élément
+                    Pt3_coord_element = Pt3_coord_parent.matrixTransform(originalMatrix.inverse()); // On transforme Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
+
+                    console.log("Rotozoom to Slide");
+                    console.log(Pt3_coord_parent);
+                    return true;
+                }
+            },
+            { from: MT_STATES.Slide, to: MT_STATES.Slide,
+                eventTargets: [document],
+                eventName: ["touchmove"],
+                useCapture: true,
+                action: (evt : TouchEvent) : boolean => {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    Pt3_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point par rapport a l'évènement
+                    //if() {
+                    //transfo.dragX(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent);}
+                    //else if() {
+                    //transfo.dragY(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent);}
+                    //else {
+                    // console.log("Orientation pt1 pt2 non reconnue");}
+
+                    console.log("Slide to Slide");
+                    console.log(Pt3_coord_parent);
+
+                    return true;
+                }
+            },
+            { from: MT_STATES.Slide, to: MT_STATES.Rotozooming,
+                eventTargets: [document],
+                eventName: ["touchend"],
+                useCapture: true,
+                action: (evt : TouchEvent) : boolean => {
+
+                    const touch = getRelevantDataFromEvent(evt); //correspond au doigt que l'on enlève de la surface du smartphone
+                    originalMatrix = transfo.getMatrixFromElement(element);
+                    let distance_touch_Pt1 = Math.sqrt((touch.clientX - Pt1_coord_parent.x)*(touch.clientX - Pt1_coord_parent.x) + (touch.clientY - Pt1_coord_parent.y)*(touch.clientY - Pt1_coord_parent.y)); //distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt1_coord_parent
+                    let distance_touch_Pt2 = Math.sqrt((touch.clientX - Pt2_coord_parent.x)*(touch.clientX - Pt2_coord_parent.x) + (touch.clientY - Pt2_coord_parent.y)*(touch.clientY - Pt2_coord_parent.y)); //distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt2_coord_parent
+                    let distance_touch_Pt3 = Math.sqrt((touch.clientX - Pt3_coord_parent.x)*(touch.clientX - Pt3_coord_parent.x) + (touch.clientY - Pt3_coord_parent.y)*(touch.clientY - Pt3_coord_parent.y)); //distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt3_coord_parent
+
+                    if(distance_touch_Pt2 < distance_touch_Pt3) {
+                        if (distance_touch_Pt1 < distance_touch_Pt2) { //si la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt1_coord_parent est plus petite que la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt2_coord_parent
+                            console.log("pt1 removed");
+
+                            Pt1_coord_element = Pt3_coord_element; //Pt1 devient Pt3
+                            Pt1_coord_parent = Pt3_coord_parent;
+                            pointerId_1 = pointerId_3;
+                            Pt3_coord_element = null; //Pt2 devient null.
+                            Pt3_coord_parent = null;
+                            pointerId_3 = -1;
+                        } else { //Sinon, Pt2 devient Pt3
+                            console.log("pt2 removed");
+
+                            Pt2_coord_element = Pt3_coord_element; //Pt1 devient Pt3
+                            Pt2_coord_parent = Pt3_coord_parent;
+                            pointerId_2 = pointerId_3;
+                            Pt3_coord_element = null; //Pt2 devient null.
+                            Pt3_coord_parent = null;
+                            pointerId_3 = -1;
+                        }
+                    } else {
+                        if (distance_touch_Pt1 < distance_touch_Pt3) { //si la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt1_coord_parent est plus petite que la distance entre le point correspondant au doigt que l'on vient d'enlever de la surface et Pt2_coord_parent
+                            console.log("pt1 removed");
+
+                            Pt1_coord_element = Pt3_coord_element; //Pt1 devient Pt3
+                            Pt1_coord_parent = Pt3_coord_parent;
+                            pointerId_1 = pointerId_3;
+                            Pt3_coord_element = null; //Pt2 devient null.
+                            Pt3_coord_parent = null;
+                            pointerId_3 = -1;
+                        } else { //Sinon, Pt3 passe a null.
+                            console.log("pt3 removed");
+
+                            Pt3_coord_element = null;
+                            Pt3_coord_parent = null;
+                            pointerId_3 = -1;
+                        }
                     }
 
                     return true;
