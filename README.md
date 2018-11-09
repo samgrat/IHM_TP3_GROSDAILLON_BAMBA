@@ -16,7 +16,7 @@ Inspecter la page web
 Parameters > More Tools > Remote Devices
 Se connecter sur l'adresse IP du PC avec le mobile
 
-## Choix d'implémentation.
+## Choix d'implémentation
 
 Nous avons désactivé le zoom navigateur natif car il interférait avec notre rotozoom à deux doigts
 En définissant une taille de base
