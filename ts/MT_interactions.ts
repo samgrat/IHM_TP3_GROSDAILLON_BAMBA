@@ -4,7 +4,7 @@ import * as transfo from "./transfo";
 function multiTouch(element: HTMLElement) : void {
     let pointerId_1 : number, Pt1_coord_element : SVGPoint, Pt1_coord_parent : SVGPoint,
         pointerId_2 : number, Pt2_coord_element : SVGPoint, Pt2_coord_parent : SVGPoint,
-        pointerId_3 : number, Pt3_coord_element : SVGPoint, Pt3_coord_parent : SVGPoint,
+        pointerId_3 : number, Pt3_coord_element : SVGPoint, Pt3_coord_parent : SVGPoint, Pt3_coord_parent_saved : SVGPoint, Pt3_coord_element_saved : SVGPoint,
         originalMatrix : SVGMatrix,
         getRelevantDataFromEvent = (evt : TouchEvent) : Touch => {
             for(let i=0; i<evt.changedTouches.length; i++) {
@@ -124,9 +124,10 @@ function multiTouch(element: HTMLElement) : void {
                 action: (evt : TouchEvent) : boolean => {
 
                     pointerId_3 = 2;
-
+                    Pt3_coord_parent_saved = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on sauvegarde le point par rapport a l'évènement
                     Pt3_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point par rapport a l'évènement
                     originalMatrix = transfo.getMatrixFromElement(element); //on récupère la matrice avec l'élément
+                    Pt3_coord_element_saved = Pt3_coord_parent.matrixTransform(originalMatrix.inverse()); // On sauvegarde Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
                     Pt3_coord_element = Pt3_coord_parent.matrixTransform(originalMatrix.inverse()); // On transforme Le Pt_coord_element avec la formule donnée : M x Pt_coord_element = Pt_coord_parent
 
                     console.log("Rotozoom to Slide");
@@ -143,12 +144,12 @@ function multiTouch(element: HTMLElement) : void {
                     evt.stopPropagation();
 
                     Pt3_coord_parent = transfo.getPoint(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY); //on récupère le point par rapport a l'évènement
-                    //if() {
-                    //transfo.dragX(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent);}
-                    //else if() {
-                    //transfo.dragY(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent);}
-                    //else {
-                    // console.log("Orientation pt1 pt2 non reconnue");}
+
+                    // On compare l'orientation de nos deux premiers point en x ou y
+                    if(Math.abs(Pt2_coord_parent.x - Pt1_coord_parent.x) < Math.abs(Pt2_coord_parent.y - Pt1_coord_parent.y)) {
+                    transfo.dragX(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent, Pt3_coord_element_saved, Pt3_coord_parent_saved);}
+                    else {
+                    transfo.dragY(element, originalMatrix, Pt3_coord_element, Pt3_coord_parent, Pt3_coord_element_saved, Pt3_coord_parent_saved);}
 
                     console.log("Slide to Slide");
                     console.log(Pt3_coord_parent);
@@ -193,11 +194,11 @@ function multiTouch(element: HTMLElement) : void {
                             console.log("pt1 removed");
 
                             Pt1_coord_element = Pt3_coord_element; //Pt1 devient Pt3
+                            pointerId_3 = -1;
                             Pt1_coord_parent = Pt3_coord_parent;
                             pointerId_1 = pointerId_3;
                             Pt3_coord_element = null; //Pt2 devient null.
                             Pt3_coord_parent = null;
-                            pointerId_3 = -1;
                         } else { //Sinon, Pt3 passe a null.
                             console.log("pt3 removed");
 

@@ -59,6 +59,36 @@ export let drag =       ( element               : HTMLElement
     originalMatrix.e = Pt_coord_parent.x - (originalMatrix.a*Pt_coord_element.x) - (originalMatrix.c*Pt_coord_element.y);
     originalMatrix.f = Pt_coord_parent.y - (originalMatrix.b*Pt_coord_element.x) - (originalMatrix.d*Pt_coord_element.y);
     setMatrixToElement(element, originalMatrix);
+
+};
+
+export let dragX =       ( element               : HTMLElement
+    , originalMatrix        : SVGMatrix
+    , Pt_coord_element      : SVGPoint
+    , Pt_coord_parent       : SVGPoint
+    , Pt_coord_element_saved       : SVGPoint
+    , Pt_coord_parent_saved       : SVGPoint
+) => {
+    // TO BE DONE
+    originalMatrix.e = Pt_coord_parent.x - (originalMatrix.a*Pt_coord_element.x) - (originalMatrix.c*Pt_coord_element_saved.y);
+    originalMatrix.f = Pt_coord_parent_saved.y - (originalMatrix.b*Pt_coord_element.x) - (originalMatrix.d*Pt_coord_element_saved.y);
+    setMatrixToElement(element, originalMatrix);
+
+};
+
+export let dragY =       ( element               : HTMLElement
+    , originalMatrix        : SVGMatrix
+    , Pt_coord_element      : SVGPoint
+    , Pt_coord_parent       : SVGPoint
+    , Pt_coord_element_saved       : SVGPoint
+    , Pt_coord_parent_saved       : SVGPoint
+
+) => {
+    // TO BE DONE
+    originalMatrix.e = Pt_coord_parent_saved.x - (originalMatrix.a*Pt_coord_element_saved.x) - (originalMatrix.c*Pt_coord_element.y);
+    originalMatrix.f = Pt_coord_parent.y - (originalMatrix.b*Pt_coord_element_saved.x) - (originalMatrix.d*Pt_coord_element.y);
+    setMatrixToElement(element, originalMatrix);
+
 };
 
 //______________________________________________________________________________________________________________________
